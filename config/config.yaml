@@ -18,6 +18,7 @@ trainer:
   checkpoint_interval: 5000
   max_epochs: 40
   num_workers: 4
+  input_size: 256
 
 optimizer:
   params:

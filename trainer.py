@@ -7,6 +7,21 @@ from torch.utils.tensorboard import SummaryWriter
 
 from utils import _create_model_training_folder
 
+def initialize_camera(batch_size, input_size, device):
+    mean_cam_t = np.array([0., 0.2, 42.])
+    mean_cam_t = torch.from_numpy(mean_cam_t).float().to(device)
+    mean_cam_t = mean_cam_t[None, :].expand(batch_size, -1)
+    cam_K = get_intrinsics_matrix(input_size, input_size, config.FOCAL_LENGTH)
+    cam_K = torch.from_numpy(cam_K.astype(np.float32)).to(device)
+    cam_K = cam_K[None, :, :].expand(batch_size, -1, -1)
+    cam_R = torch.eye(3).to(device)
+    cam_R = cam_R[None, :, :].expand(batch_size, -1, -1)
+    return mean_cam_t, cam_K, cam_R
+
+
+
+
+
 
 class BYOLTrainer:
     def __init__(self, online_network, target_network, predictor, optimizer, device, **params):
@@ -22,6 +37,15 @@ class BYOLTrainer:
         self.num_workers = params['num_workers']
         self.checkpoint_interval = params['checkpoint_interval']
         _create_model_training_folder(self.writer, files_to_same=["./config/config.yaml", "main.py", 'trainer.py'])
+        self.mean_cam_t, self.cam_K, self.cam_R = initialize_camera(params['batch_size'], params['input_size'], device)
+        self.pytorch3d_renderer = TexturedIUVRenderer(device=device,
+                                            batch_size=params['batch_size'],
+                                            img_wh=params['input_size'],
+                                            projection_type='perspective',
+                                            perspective_focal_length=config.FOCAL_LENGTH,
+                                            render_rgb=False,
+                                            bin_size=32)
+        self.smpl = SMPL(config.SMPL_MODEL_DIR, batch_size=params['batch_size'])
 
     @torch.no_grad()
     def _update_target_network_parameters(self):

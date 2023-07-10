@@ -6,8 +6,9 @@ from torchvision import datasets
 from data.multi_view_data_injector import MultiViewDataInjector
 from data.transforms import get_simclr_data_transforms
 from models.mlp_head import MLPHead
-from models.resnet_base_network import ResNet18
+from models.resnet_base_network import resnet18
 from trainer import BYOLTrainer
+from utils3d import SyntheticTrainingDataset, TexturedIUVRenderer, SMPL
 
 print(torch.__version__)
 torch.manual_seed(0)
@@ -21,11 +22,15 @@ def main():
 
     data_transform = get_simclr_data_transforms(**config['data_transforms'])
 
-    train_dataset = datasets.STL10('/home/thalles/Downloads/', split='train+unlabeled', download=True,
-                                   transform=MultiViewDataInjector([data_transform, data_transform]))
+    # train_dataset = datasets.STL10('/home/thalles/Downloads/', split='train+unlabeled', download=True,
+    #                                transform=MultiViewDataInjector([data_transform, data_transform]))
+    dataset_train = SyntheticTrainingDataset(npz_path=args.data_path)
+    # dataset_train = HumanImageDataset(data_path=args.data_path)
+    print(len(dataset_train))
+    channels = 18
 
     # online network
-    online_network = ResNet18(**config['network']).to(device)
+    online_network = resnet18(in_channels=channels).to(device)
     pretrained_folder = config['network']['fine_tune_from']
 
     # load pre-trained model if defined
@@ -47,7 +52,7 @@ def main():
                         **config['network']['projection_head']).to(device)
 
     # target encoder
-    target_network = ResNet18(**config['network']).to(device)
+    target_network =  resnet18(in_channels=channels).to(device)
 
     optimizer = torch.optim.SGD(list(online_network.parameters()) + list(predictor.parameters()),
                                 **config['optimizer']['params'])
