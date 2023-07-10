@@ -12,6 +12,7 @@ class SyntheticTrainingDataset(torch.utils.data.Dataset):
     """
     def __init__(self,
                  npz_path='/data/angelisg/aicc-Avatar-Body-Capture/datasets/amass_up3d_3dpw_train.npz',
+                 transforms=None,
                  params_from='all'):
 
         assert params_from in ['all', 'h36m', 'up3d', '3dpw', 'not_amass']
@@ -20,6 +21,7 @@ class SyntheticTrainingDataset(torch.utils.data.Dataset):
         self.fnames = data['fnames']
         self.poses = data['poses']
         self.shapes = data['shapes']
+        self.transforms = transforms
 
         if params_from != 'all':
             if params_from == 'not_amass':
@@ -48,7 +50,11 @@ class SyntheticTrainingDataset(torch.utils.data.Dataset):
             "Poses and shapes are wrong: {}, {}, {}".format(self.fnames[index],
                                                             pose.shape, shape.shape)
 
-        pose = torch.from_numpy(pose.astype(np.float32))
+        pose = pose.astype(np.float32)
+        if self.transforms is not None:
+            pose = self.transforms(pose)
+        else:
+            pose = torch.from_numpy(pose)
         shape = torch.from_numpy(shape.astype(np.float32))
 
         return {'pose': pose,
