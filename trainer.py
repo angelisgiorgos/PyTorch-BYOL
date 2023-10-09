@@ -1,10 +1,6 @@
 import os
 import torch
 import numpy as np
-<<<<<<< HEAD
-=======
-
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
 import torch.nn.functional as F
 import torchvision
 import config
