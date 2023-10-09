@@ -15,6 +15,7 @@ class SyntheticTrainingDataset(torch.utils.data.Dataset):
     Returns dict with SMPL pose and shape (not augmented) as torch tensors.
     """
     def __init__(self,
+<<<<<<< HEAD
                  npz_path,
                  textures_path,
                  backgrounds_dir_path,
@@ -24,6 +25,11 @@ class SyntheticTrainingDataset(torch.utils.data.Dataset):
                  grey_tex_prob=0.05,
                  img_wh=256):
         
+=======
+                 npz_path='/data/angelisg/aicc-Avatar-Body-Capture/datasets/amass_up3d_3dpw_train.npz',
+                 transforms=None,
+                 params_from='all'):
+>>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
 
         assert params_from in ['all', 'h36m', 'up3d', '3dpw', 'not_amass']
 
@@ -34,7 +40,11 @@ class SyntheticTrainingDataset(torch.utils.data.Dataset):
         self.fnames = data['fnames']
         self.poses = data['poses']
         self.shapes = data['shapes']
+<<<<<<< HEAD
         self.img_wh = img_wh
+=======
+        self.transforms = transforms
+>>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
 
         if params_from != 'all':
             if params_from == 'not_amass':
@@ -79,12 +89,16 @@ class SyntheticTrainingDataset(torch.utils.data.Dataset):
 
         pose = pose.astype(np.float32)
         if self.transforms is not None:
+<<<<<<< HEAD
             new_pose = self.transforms(pose)
             new_pose = np.array(new_pose)
             pose = new_pose[0, :, :]
             new_pose = new_pose[1, :, :]
             new_pose = torch.from_numpy(new_pose).squeeze(1)
             pose = torch.from_numpy(pose).squeeze(1)
+=======
+            pose = self.transforms(pose)
+>>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
         else:
             pose = torch.from_numpy(pose)
         shape = torch.from_numpy(shape.astype(np.float32))
