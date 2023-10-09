@@ -13,7 +13,6 @@ from torch.utils.tensorboard import SummaryWriter
 from utils3d.canny_edge_detector import CannyEdgeDetector
 
 from utils import _create_model_training_folder
-<<<<<<< HEAD
 from utils3d import (SMPL,
                      perspective_project_torch,
                      get_intrinsics_matrix, 
@@ -27,17 +26,6 @@ from utils3d import (SMPL,
                      random_extreme_crop,
                      augment_proxy_representation_canny,
                      augment_rgb)
-=======
-from utils3d import (
-    TexturedIUVRenderer, SMPL, get_intrinsics_matrix, perspective_project_torch,
-    smpl_based_val_representation
-    )
-import config
-
-FOCAL_LENGTH = 5000
-SMPL_MODEL_DIR = './additional/smpl'
-
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
 
 def initialize_camera(batch_size, input_size, device):
     mean_cam_t = np.array([0., 0.2, 42.])
@@ -51,7 +39,6 @@ def initialize_camera(batch_size, input_size, device):
     return mean_cam_t, cam_K, cam_R
 
 
-<<<<<<< HEAD
 def canny_edge_silhouette(seg, resized_img, target_joints2d_coco, background, edge_detect_model):
     # Add background rgb
     rgb_in = batch_add_rgb_background(backgrounds=background,
@@ -129,8 +116,6 @@ def canny_edge_detector_processing(renderer_output, background, edge_detect_mode
     return input_representation
 
 
-=======
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
 class BYOLTrainer:
     def __init__(self, online_network, target_network, predictor, optimizer, device, **params):
         self.online_network = online_network
@@ -149,7 +134,6 @@ class BYOLTrainer:
         self.mean_cam_t, self.cam_K, self.cam_R = initialize_camera(params['batch_size'],
                                                                     params['input_size'], device)
         self.pytorch3d_renderer = TexturedIUVRenderer(device=device,
-<<<<<<< HEAD
                                             batch_size=params['batch_size'],
                                             img_wh=params['input_size'],
                                             projection_type='perspective',
@@ -179,15 +163,6 @@ class BYOLTrainer:
                                 'remove_joints_indices':config.REMOVE_JOINTS_INDICES,
                                 'remove_joints_prob': config.REMOVE_JOINTS_PROB}
 
-=======
-                                                      batch_size=params['batch_size'],
-                                                      img_wh=params['input_size'],
-                                                      projection_type='perspective',
-                                                      perspective_focal_length=FOCAL_LENGTH,
-                                                      render_rgb=False,
-                                                      bin_size=32)
-        self.smpl = SMPL(SMPL_MODEL_DIR, batch_size=params['batch_size'])
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
 
     @torch.no_grad()
     def _update_target_network_parameters(self):
@@ -211,20 +186,14 @@ class BYOLTrainer:
             param_k.data.copy_(param_q.data)  # initialize
             param_k.requires_grad = False  # not update by gradient
 
-<<<<<<< HEAD
     @torch.no_grad()
-=======
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
     def process_batch_view(self, samples, second_view=False):
         target_pose = samples['pose']
         target_shape = samples['shape']
         target_pose = target_pose.to(self.device)
         target_shape = target_shape.to(self.device)
-<<<<<<< HEAD
         background = samples['background'].to(self.device)  # (bs, 3, img_wh, img_wh)
         texture = samples['texture'].to(self.device)  # (bs, 1200, 800, 3)
-=======
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
         target_smpl_output = self.smpl(body_pose=target_pose[:, 3:],
                                        global_orient=target_pose[:, :3],
                                        betas=target_shape)
@@ -234,7 +203,6 @@ class BYOLTrainer:
         target_joints2d_coco = perspective_project_torch(target_joints_coco, self.cam_R,
                                                          self.mean_cam_t,
                                                          cam_K=self.cam_K)
-<<<<<<< HEAD
         # TARGET VERTICES AND JOINTS
         target_smpl_output = self.smpl(body_pose=target_pose[:, 3:],
                                         global_orient=target_pose[:, :3],
@@ -262,18 +230,6 @@ class BYOLTrainer:
                                                     )
         return input_repr
 
-=======
-
-        input_representation = smpl_based_val_representation(
-            config=config,
-            target_vertices=target_vertices,
-            target_joints2d_coco=target_joints2d_coco,
-            renderer=self.pytorch3d_renderer,
-            cam_t=self.mean_cam_t,
-            device=self.device,
-            second_view=second_view)
-        return input_representation
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
 
     def train(self, train_dataset):
 
@@ -289,14 +245,9 @@ class BYOLTrainer:
 
             for (batch_view_1, batch_view_2) in train_loader:
 
-<<<<<<< HEAD
                 with torch.no_grad():
                     batch_view_1 = self.process_batch_view(batch_view_1)
                     batch_view_2 = self.process_batch_view(batch_view_2, second_view=True)
-=======
-                batch_view_1 = self.process_batch_view(batch_view_1)
-                batch_view_2 = self.process_batch_view(batch_view_2, second_view=True)
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
 
                 if niter == 0:
                     grid = torchvision.utils.make_grid(batch_view_1[:32, 0,:,:].unsqueeze(1))

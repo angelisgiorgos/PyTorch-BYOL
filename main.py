@@ -37,7 +37,6 @@ def main():
     # train_dataset = datasets.STL10('/home/thalles/Downloads/', split='train+unlabeled', download=True,
     #                                transform=MultiViewDataInjector([data_transform, data_transform]))
     train_dataset = SyntheticTrainingDataset(npz_path=config['dataset']['path'],
-<<<<<<< HEAD
                                              textures_path=config['dataset']['texture_path'],
                                              backgrounds_dir_path=config['dataset']['background_path'],
                                              transforms=MultiViewDataInjector(
@@ -45,10 +44,6 @@ def main():
                                             background_transforms=MultiViewDataInjector(
                                                  [background_transforms, background_transforms]))
 
-=======
-                                             transforms=Multi3DData(
-                                                 [data_transform, data_transform]))
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
     # dataset_train = HumanImageDataset(data_path=args.data_path)
     print(len(train_dataset))
     channels = 18
@@ -57,24 +52,7 @@ def main():
     online_network = resnet18(in_channels=channels).to(device)
     pretrained_folder = config['network']['fine_tune_from']
 
-<<<<<<< HEAD
-=======
-    # load pre-trained model if defined
-    # if pretrained_folder:
-    #     try:
-    #         checkpoints_folder = os.path.join('./runs', pretrained_folder, 'checkpoints')
-    #
-    #         # load pre-trained parameters
-    #         load_params = torch.load(os.path.join(os.path.join(checkpoints_folder, 'model.pth')),
-    #                                  map_location=torch.device(torch.device(device)))
-    #
-    #         online_network.load_state_dict(load_params['online_network_state_dict'])
-    #
-    #     except FileNotFoundError:
-    #         print("Pre-trained weights not found. Training from scratch.")
 
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
-    # predictor network
     predictor = MLPHead(in_channels=online_network.projetion.net[-1].out_features,
                         **config['network']['projection_head']).to(device)
 
