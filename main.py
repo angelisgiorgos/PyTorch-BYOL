@@ -2,23 +2,12 @@ import os
 
 import torch
 import yaml
-from torchvision import datasets
-<<<<<<< HEAD
 from data.multi_view_data_injector import MultiViewDataInjector
 from data.transforms import get_simclr_data_transforms, bkground_transforms
 from models.mlp_head import MLPHead
 from models.resnet_base_network import resnet18
 from trainer import BYOLTrainer
 from utils3d import SyntheticTrainingDataset
-=======
-from data.multi_view_data_injector import MultiViewDataInjector, Multi3DData
-from data.transforms import get_simclr_data_transforms
-from models.mlp_head import MLPHead
-from models.resnet_base_network import resnet18
-from trainer import BYOLTrainer
-from utils3d import SyntheticTrainingDataset, TexturedIUVRenderer, SMPL
-from data.transforms import get_simclr_data_3dtransforms
->>>>>>> 3c27d33b631e7063f55844bab34aa02b94b5fea6
 
 print(torch.__version__)
 torch.manual_seed(0)
