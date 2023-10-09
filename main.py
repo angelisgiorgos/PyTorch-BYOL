@@ -4,11 +4,11 @@ import torch
 import yaml
 from torchvision import datasets
 from data.multi_view_data_injector import MultiViewDataInjector
-from data.transforms import get_simclr_data_transforms
+from data.transforms import get_simclr_data_transforms, bkground_transforms
 from models.mlp_head import MLPHead
 from models.resnet_base_network import resnet18
 from trainer import BYOLTrainer
-from utils3d import SyntheticTrainingDataset, TexturedIUVRenderer, SMPL
+from utils3d import SyntheticTrainingDataset
 
 print(torch.__version__)
 torch.manual_seed(0)
@@ -22,30 +22,25 @@ def main():
 
     data_transform = get_simclr_data_transforms(**config['data_transforms'])
 
+    background_transforms = bkground_transforms(**config['data_transforms'])
+
     # train_dataset = datasets.STL10('/home/thalles/Downloads/', split='train+unlabeled', download=True,
     #                                transform=MultiViewDataInjector([data_transform, data_transform]))
-    dataset_train = SyntheticTrainingDataset(npz_path=args.data_path)
+    train_dataset = SyntheticTrainingDataset(npz_path=config['dataset']['path'],
+                                             textures_path=config['dataset']['texture_path'],
+                                             backgrounds_dir_path=config['dataset']['background_path'],
+                                             transforms=MultiViewDataInjector(
+                                                 [data_transform, data_transform]),
+                                            background_transforms=MultiViewDataInjector(
+                                                 [background_transforms, background_transforms]))
+
     # dataset_train = HumanImageDataset(data_path=args.data_path)
-    print(len(dataset_train))
+    print(len(train_dataset))
     channels = 18
 
     # online network
     online_network = resnet18(in_channels=channels).to(device)
     pretrained_folder = config['network']['fine_tune_from']
-
-    # load pre-trained model if defined
-    if pretrained_folder:
-        try:
-            checkpoints_folder = os.path.join('./runs', pretrained_folder, 'checkpoints')
-
-            # load pre-trained parameters
-            load_params = torch.load(os.path.join(os.path.join(checkpoints_folder, 'model.pth')),
-                                     map_location=torch.device(torch.device(device)))
-
-            online_network.load_state_dict(load_params['online_network_state_dict'])
-
-        except FileNotFoundError:
-            print("Pre-trained weights not found. Training from scratch.")
 
     # predictor network
     predictor = MLPHead(in_channels=online_network.projetion.net[-1].out_features,

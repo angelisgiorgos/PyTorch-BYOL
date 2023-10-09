@@ -173,7 +173,7 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.projetion = MLPHead(in_channels=resnet.fc.in_features, **kwargs['projection_head'])
+        self.projetion = MLPHead(in_channels=512, mlp_hidden_size=512, projection_size=128)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -230,7 +230,7 @@ class ResNet(nn.Module):
 
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        x = self.projetion(h)
+        x = self.projetion(x)
         return x
 
 

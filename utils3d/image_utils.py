@@ -67,7 +67,7 @@ def convert_bbox_centre_hw_to_corners_troch(centre, height, width):
     return torch.tensor([x1, y1, x2, y2])    
 
 
-def batch_crop_seg_to_bounding_box(seg, joints2D, orig_scale_factor=1.2, delta_scale_range=None, delta_centre_range=None):
+def batch_crop_seg_to_bounding_box(seg, joints2D, img=None, orig_scale_factor=1.2, delta_scale_range=None, delta_centre_range=None):
     """
     seg: (bs, wh, wh)
     joints2D: (bs, num joints, 2)
@@ -75,6 +75,7 @@ def batch_crop_seg_to_bounding_box(seg, joints2D, orig_scale_factor=1.2, delta_s
     """
     all_cropped_segs = []
     all_cropped_joints2D = []
+    all_cropped_imgs = []
     for i in range(seg.shape[0]):
         body_pixels = np.argwhere(seg[i] != 0)
         bbox_corners = np.amin(body_pixels, axis=0), np.amax(body_pixels, axis=0)
@@ -105,15 +106,20 @@ def batch_crop_seg_to_bounding_box(seg, joints2D, orig_scale_factor=1.2, delta_s
         cropped_seg = seg[i, top_left[0]: bottom_right[0], top_left[1]: bottom_right[1]]
         all_cropped_joints2D.append(cropped_joints2d)
         all_cropped_segs.append(cropped_seg)
-    return all_cropped_segs, all_cropped_joints2D
+        if img is not None:
+            cropped_img = img[i, :, top_left[0]: bottom_right[0], top_left[1]: bottom_right[1]]
+            all_cropped_imgs.append(cropped_img)
+
+    return all_cropped_segs, all_cropped_joints2D, all_cropped_imgs
 
 
-def batch_resize(all_cropped_segs, all_cropped_joints2D, img_wh):
+def batch_resize(all_cropped_segs, all_cropped_joints2D, all_cropped_images=None, img_wh=256):
     """
     all_cropped_seg: list of cropped segs with len = batch size
     """
     all_resized_segs = []
     all_resized_joints2D = []
+    all_resized_imgs = []
     for i in range(len(all_cropped_segs)):
         seg = all_cropped_segs[i]
         orig_height, orig_width = seg.shape[:2]
@@ -124,11 +130,20 @@ def batch_resize(all_cropped_segs, all_cropped_joints2D, img_wh):
         resized_joints2D = joints2D * np.array([img_wh / float(orig_width),
                                                 img_wh / float(orig_height)])
         all_resized_joints2D.append(resized_joints2D)
+        if all_cropped_images:
+            transform = torchvision.transforms.Resize((img_wh, img_wh))
+            transform_iamges = transform(all_cropped_images[i])
+            all_resized_imgs.append(transform_iamges)
+
 
     all_resized_segs = np.stack(all_resized_segs, axis=0)
     all_resized_joints2D = np.stack(all_resized_joints2D, axis=0)
+    if all_cropped_images:
+        all_resized_imgs = torch.stack(all_resized_imgs, axis=0)
 
-    return all_resized_segs, all_resized_joints2D
+
+    return all_resized_segs, all_resized_joints2D, all_resized_imgs
+
 
 
 def crop_and_resize_silhouette_joints(silhouette,

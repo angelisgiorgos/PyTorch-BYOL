@@ -1,8 +1,17 @@
 from torchvision.transforms import transforms
 from data.gaussian_blur import GaussianBlur
+from data.smpl_transforms import SMPLPoseRotating, SMPLPoseFlipping
 
 
 def get_simclr_data_transforms(input_shape, s=1):
+    # get a set of data augmentation transformations as described in the SimCLR paper.
+    data_transforms = transforms.Compose([SMPLPoseFlipping(),
+                                          SMPLPoseRotating(0.2)])
+    return data_transforms
+
+
+
+def bkground_transforms(input_shape, s=1):
     # get a set of data augmentation transformations as described in the SimCLR paper.
     color_jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
     data_transforms = transforms.Compose([transforms.RandomResizedCrop(size=eval(input_shape)[0]),
